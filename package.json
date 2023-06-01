@@ -11,7 +11,6 @@
     "markdown",
     "unified"
   ],
-  "repository": "micromark/micromark-extension-gfm-strikethrough",
   "author": "shlroland <shlorland1995@gmail.com>",
   "contributors": [
     "shlroland <shlorland1995@gmail.com>"
@@ -41,7 +40,6 @@
   "devDependencies": {
     "@types/node": "^20.2.5",
     "c8": "^7.14.0",
-    "create-gfm-fixtures": "^1.1.0",
     "micromark": "^3.2.0",
     "micromark-build": "^1.4.0",
     "prettier": "^2.8.8",

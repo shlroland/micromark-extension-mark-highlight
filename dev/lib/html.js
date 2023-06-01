@@ -6,19 +6,19 @@
 
 /**
  * Extension for `micromark` that can be passed in `htmlExtensions`, to
- * support GFM strikethrough when serializing to HTML.
+ * support highlight mark when serializing to HTML.
  *
  * @type {HtmlExtension}
  */
-export const gfmStrikethroughHtml = {
+export const markhighlightHtml = {
   enter: {
-    strikethrough() {
-      this.tag('<del>')
+    highlight() {
+      this.tag('<mark>')
     }
   },
   exit: {
-    strikethrough() {
-      this.tag('</del>')
+    highlight() {
+      this.tag('</mark>')
     }
   }
 }

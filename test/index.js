@@ -1,17 +1,15 @@
 import assert from 'node:assert/strict'
-import fs from 'node:fs/promises'
 import test from 'node:test'
 import {micromark} from 'micromark'
-import {createGfmFixtures} from 'create-gfm-fixtures'
 import {
-  gfmStrikethrough as syntax,
-  gfmStrikethroughHtml as html
-} from 'micromark-extension-gfm-strikethrough'
+  markHighlight as syntax,
+  markhighlightHtml as html
+} from '../dev/index.js'
 
 test('core', async () => {
   assert.deepEqual(
-    Object.keys(await import('micromark-extension-gfm-strikethrough')).sort(),
-    ['gfmStrikethrough', 'gfmStrikethroughHtml'],
+    Object.keys(await import('../dev/index.js')).sort(),
+    ['markHighlight', 'markhighlightHtml'],
     'should expose the public api'
   )
 })
@@ -20,124 +18,92 @@ test('markdown -> html (micromark)', () => {
   const defaults = syntax()
 
   assert.deepEqual(
-    micromark('a ~b~', {
+    micromark('a ==b==', {
       extensions: [defaults],
       htmlExtensions: [html]
     }),
-    '<p>a <del>b</del></p>',
-    'should support strikethrough w/ one tilde'
+    '<p>a <mark>b</mark></p>',
+    'should support highlight w/ two equalsTo'
   )
 
   assert.deepEqual(
-    micromark('a ~~b~~', {
+    micromark('a =b=', {
       extensions: [defaults],
       htmlExtensions: [html]
     }),
-    '<p>a <del>b</del></p>',
-    'should support strikethrough w/ two tildes'
+    '<p>a =b=</p>',
+    'should not support highlight w/ one equalsTo'
   )
 
   assert.deepEqual(
-    micromark('a ~~~b~~~', {
+    micromark('a ===b===', {
       extensions: [defaults],
       htmlExtensions: [html]
     }),
-    '<p>a ~~~b~~~</p>',
-    'should not support strikethrough w/ three tildes'
+    '<p>a ===b===</p>',
+    'should not support highlight w/ three equalsTo'
   )
 
   assert.deepEqual(
-    micromark('a \\~~~b~~ c', {
+    micromark('a \\~==b== c', {
       extensions: [defaults],
       htmlExtensions: [html]
     }),
-    '<p>a ~<del>b</del> c</p>',
-    'should support strikethrough w/ after an escaped tilde'
+    '<p>a ~<mark>b</mark> c</p>',
+    'should support highlight w/ after an escaped equalsTo'
   )
 
   assert.deepEqual(
-    micromark('a ~~b ~~c~~ d~~ e', {
+    micromark('a ==b ==c== d== e', {
       extensions: [defaults],
       htmlExtensions: [html]
     }),
-    '<p>a <del>b <del>c</del> d</del> e</p>',
-    'should support nested strikethrough'
+    '<p>a <mark>b <mark>c</mark> d</mark> e</p>',
+    'should support nested highlight'
   )
 
   assert.deepEqual(
-    micromark('a ~-1~ b', {
+    micromark('a ==-1== b', {
       extensions: [defaults],
       htmlExtensions: [html]
     }),
-    '<p>a <del>-1</del> b</p>',
+    '<p>a <mark>-1</mark> b</p>',
     'should open if preceded by whitespace and followed by punctuation'
   )
 
   assert.deepEqual(
-    micromark('a ~b.~ c', {
+    micromark('a ==b.== c', {
       extensions: [defaults],
       htmlExtensions: [html]
     }),
-    '<p>a <del>b.</del> c</p>',
+    '<p>a <mark>b.</mark> c</p>',
     'should close if preceded by punctuation and followed by whitespace'
   )
 
-  assert.deepEqual(
-    micromark('~b.~.', {
-      extensions: [syntax({singleTilde: true})],
-      htmlExtensions: [html]
-    }),
-    '<p><del>b.</del>.</p>',
-    'should close if preceded and followed by punctuation (del)'
-  )
+  // assert.deepEqual(
+  //   micromark('~b.~.', {
+  //     extensions: [syntax({singleTilde: true})],
+  //     htmlExtensions: [html]
+  //   }),
+  //   '<p><del>b.</del>.</p>',
+  //   'should close if preceded and followed by punctuation (del)'
+  // )
 
-  assert.deepEqual(
-    micromark('a ~b~ ~~c~~ d', {
-      extensions: [syntax({singleTilde: false})],
-      htmlExtensions: [html]
-    }),
-    '<p>a ~b~ <del>c</del> d</p>',
-    'should not support strikethrough w/ one tilde if `singleTilde: false`'
-  )
+  // assert.deepEqual(
+  //   micromark('a ~b~ ~~c~~ d', {
+  //     extensions: [syntax({singleTilde: false})],
+  //     htmlExtensions: [html]
+  //   }),
+  //   '<p>a ~b~ <del>c</del> d</p>',
+  //   'should not support strikethrough w/ one tilde if `singleTilde: false`'
+  // )
 
-  assert.deepEqual(
-    micromark('a ~b~ ~~c~~ d', {
-      extensions: [syntax({singleTilde: true})],
-      htmlExtensions: [html]
-    }),
-    '<p>a <del>b</del> <del>c</del> d</p>',
-    'should support strikethrough w/ one tilde if `singleTilde: true`'
-  )
-})
-
-test('fixtures', async () => {
-  const base = new URL('fixtures/', import.meta.url)
-
-  await createGfmFixtures(base, {rehypeStringify: {closeSelfClosing: true}})
-
-  const files = await fs.readdir(base)
-  let index = -1
-  const extname = '.md'
-
-  while (++index < files.length) {
-    const d = files[index]
-
-    if (!d.endsWith(extname)) {
-      continue
-    }
-
-    const name = d.slice(0, -extname.length)
-    const input = await fs.readFile(new URL(d, base))
-    const expected = String(await fs.readFile(new URL(name + '.html', base)))
-    let actual = micromark(input, {
-      extensions: [syntax()],
-      htmlExtensions: [html]
-    })
-
-    if (actual && !/\n$/.test(actual)) {
-      actual += '\n'
-    }
-
-    assert.equal(actual, expected, name)
-  }
+  // assert.deepEqual(
+  //   micromark('a ~b~ ~~c~~ d', {
+  //     extensions: [syntax({singleTilde: true})],
+  //     htmlExtensions: [html]
+  //   }),
+  //   '<p>a <del>b</del> <del>c</del> d</p>',
+  //   'should support strikethrough w/ one tilde if `singleTilde: true`'
+  // )
 })

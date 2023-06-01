@@ -7,13 +7,6 @@
  * @typedef {import('micromark-util-types').TokenizeContext} TokenizeContext
  * @typedef {import('micromark-util-types').Tokenizer} Tokenizer
  *
- * @typedef Options
- *   Configuration (optional).
- * @property {boolean} [singleTilde=true]
- *   Whether to support strikethrough with a single tilde.
- *
- *   Single tildes work on github.com, but are technically prohibited by the
- *   GFM spec.
  */
 
 import {ok as assert} from 'uvu/assert'
@@ -24,39 +17,35 @@ import {codes} from 'micromark-util-symbol/codes.js'
 import {constants} from 'micromark-util-symbol/constants.js'
 import {types} from 'micromark-util-symbol/types.js'
 
+const HIGHLIGHT_SEQUENCE_TEMPORTARY = 'highlightSequenceTemporary'
+const HIGHLIGHT_SEQUENCE = 'highlightSequence'
+const HIGHLIGHT = 'highlight'
+const HIGHLIGHT_TEXT = 'highlightText'
+
 /**
- * Create an extension for `micromark` to enable GFM strikethrough syntax.
- *
- * @param {Options | null | undefined} [options]
- *   Configuration.
+ * Create an extension for `micromark` to enable highlight syntax.
  * @returns {Extension}
  *   Extension for `micromark` that can be passed in `extensions`, to
- *   enable GFM strikethrough syntax.
+ *   enable highlight syntax.
  */
-export function gfmStrikethrough(options) {
-  const options_ = options || {}
-  let single = options_.singleTilde
+export function markHighlight() {
   const tokenizer = {
-    tokenize: tokenizeStrikethrough,
-    resolveAll: resolveAllStrikethrough
-  }
-
-  if (single === null || single === undefined) {
-    single = true
+    tokenize: tokenizeHighlight,
+    resolveAll: resolveAllHighlight
   }
 
   return {
-    text: {[codes.tilde]: tokenizer},
+    text: {[codes.equalsTo]: tokenizer},
     insideSpan: {null: [tokenizer]},
-    attentionMarkers: {null: [codes.tilde]}
+    attentionMarkers: {null: [codes.equalsTo]}
   }
 
   /**
-   * Take events and resolve strikethrough.
+   * Take events and resolve highlight.
    *
    * @type {Resolver}
    */
-  function resolveAllStrikethrough(events, context) {
+  function resolveAllHighlight(events, context) {
     let index = -1
 
     // Walk through all events.
@@ -64,7 +53,7 @@ export function gfmStrikethrough(options) {
       // Find a token that can close.
       if (
         events[index][0] === 'enter' &&
-        events[index][1].type === 'strikethroughSequenceTemporary' &&
+        events[index][1].type === HIGHLIGHT_SEQUENCE_TEMPORTARY &&
         events[index][1]._close
       ) {
         let open = index
@@ -74,25 +63,25 @@ export function gfmStrikethrough(options) {
           // Find a token that can open the closer.
           if (
             events[open][0] === 'exit' &&
-            events[open][1].type === 'strikethroughSequenceTemporary' &&
+            events[open][1].type === HIGHLIGHT_SEQUENCE_TEMPORTARY &&
             events[open][1]._open &&
             // If the sizes are the same:
             events[index][1].end.offset - events[index][1].start.offset ===
               events[open][1].end.offset - events[open][1].start.offset
           ) {
-            events[index][1].type = 'strikethroughSequence'
-            events[open][1].type = 'strikethroughSequence'
+            events[index][1].type = HIGHLIGHT_SEQUENCE
+            events[open][1].type = HIGHLIGHT_SEQUENCE
 
             /** @type {Token} */
-            const strikethrough = {
-              type: 'strikethrough',
+            const highlight = {
+              type: HIGHLIGHT,
               start: Object.assign({}, events[open][1].start),
               end: Object.assign({}, events[index][1].end)
             }
 
             /** @type {Token} */
             const text = {
-              type: 'strikethroughText',
+              type: HIGHLIGHT_TEXT,
               start: Object.assign({}, events[open][1].end),
               end: Object.assign({}, events[index][1].start)
             }
@@ -100,7 +89,7 @@ export function gfmStrikethrough(options) {
             // Opening.
             /** @type {Array<Event>} */
             const nextEvents = [
-              ['enter', strikethrough, context],
+              ['enter', highlight, context],
               ['enter', events[open][1], context],
               ['exit', events[open][1], context],
               ['enter', text, context]
@@ -123,7 +112,7 @@ export function gfmStrikethrough(options) {
               ['exit', text, context],
               ['enter', events[index][1], context],
               ['exit', events[index][1], context],
-              ['exit', strikethrough, context]
+              ['exit', highlight, context]
             ])
 
             splice(events, open - 1, index - open + 3, nextEvents)
@@ -138,7 +127,7 @@ export function gfmStrikethrough(options) {
     index = -1
 
     while (++index < events.length) {
-      if (events[index][1].type === 'strikethroughSequenceTemporary') {
+      if (events[index][1].type === HIGHLIGHT_SEQUENCE_TEMPORTARY) {
         events[index][1].type = types.data
       }
     }
@@ -150,7 +139,7 @@ export function gfmStrikethrough(options) {
    * @this {TokenizeContext}
    * @type {Tokenizer}
    */
-  function tokenizeStrikethrough(effects, ok, nok) {
+  function tokenizeHighlight(effects, ok, nok) {
     const previous = this.previous
     const events = this.events
     let size = 0
@@ -159,16 +148,16 @@ export function gfmStrikethrough(options) {
 
     /** @type {State} */
     function start(code) {
-      assert(code === codes.tilde, 'expected `~`')
+      assert(code === codes.equalsTo, 'expected `=`')
 
       if (
-        previous === codes.tilde &&
+        previous === codes.equalsTo &&
         events[events.length - 1][1].type !== types.characterEscape
       ) {
         return nok(code)
       }
 
-      effects.enter('strikethroughSequenceTemporary')
+      effects.enter(HIGHLIGHT_SEQUENCE_TEMPORTARY)
       return more(code)
     }
 
@@ -176,7 +165,7 @@ export function gfmStrikethrough(options) {
     function more(code) {
       const before = classifyCharacter(previous)
 
-      if (code === codes.tilde) {
+      if (code === codes.equalsTo) {
         // If this is the third marker, exit.
         if (size > 1) return nok(code)
         effects.consume(code)
@@ -184,8 +173,7 @@ export function gfmStrikethrough(options) {
         return more
       }
 
-      if (size < 2 && !single) return nok(code)
-      const token = effects.exit('strikethroughSequenceTemporary')
+      const token = effects.exit(HIGHLIGHT_SEQUENCE_TEMPORTARY)
       const after = classifyCharacter(code)
       token._open =
         !after || (after === constants.attentionSideAfter && Boolean(before))
