@@ -1,4 +1,4 @@
-# micromark-extension-gfm-strikethrough
+# micromark-extension-mark-highlight
 
 [![Build][build-badge]][build]
 [![Coverage][coverage-badge]][coverage]
@@ -8,46 +8,42 @@
 [![Backers][backers-badge]][collective]
 [![Chat][chat-badge]][chat]
 
-[micromark][] extensions to support GFM [strikethrough][].
+[micromark][] extensions to support mark [highlight][].
 
 ## Contents
 
-*   [What is this?](#what-is-this)
-*   [When to use this](#when-to-use-this)
-*   [Install](#install)
-*   [Use](#use)
-*   [API](#api)
-    *   [`gfmStrikethrough(options?)`](#gfmstrikethroughoptions)
-    *   [`gfmStrikethroughHtml`](#gfmstrikethroughhtml)
-    *   [`Options`](#options)
-*   [Authoring](#authoring)
-*   [HTML](#html)
-*   [CSS](#css)
-*   [Syntax](#syntax)
-*   [Types](#types)
-*   [Compatibility](#compatibility)
-*   [Security](#security)
-*   [Related](#related)
-*   [Contribute](#contribute)
-*   [License](#license)
+- [micromark-extension-mark-highlight](#micromark-extension-mark-highlight)
+  - [Contents](#contents)
+  - [What is this?](#what-is-this)
+  - [When to use this](#when-to-use-this)
+  - [Install](#install)
+  - [Use](#use)
+  - [API](#api)
+    - [`markHighlight()`](#markhighlight)
+          - [Returns](#returns)
+    - [`markhighlightHtml`](#markhighlighthtml)
+  - [HTML](#html)
+  - [Types](#types)
+  - [Compatibility](#compatibility)
+  - [Security](#security)
+  - [Related](#related)
+  - [Contribute](#contribute)
+  - [License](#license)
 
 ## What is this?
 
-This package contains extensions that add support for strikethrough as enabled
-by GFM to [`micromark`][micromark].
+This package contains extensions that add support for hightlight to [`micromark`][micromark].
 
 ## When to use this
 
-This project is useful when you want to support strikethrough in markdown.
+This project is useful when you want to support highlight mark in markdown.
 
 You can use these extensions when you are working with [`micromark`][micromark].
-To support all GFM features, use
-[`micromark-extension-gfm`][micromark-extension-gfm].
 
 When you need a syntax tree, you can combine this package with
-[`mdast-util-gfm-strikethrough`][mdast-util-gfm-strikethrough].
+[`mdast-util-mark-highlight`][mdast-util-mark-highlight].
 
-All these packages are used [`remark-gfm`][remark-gfm], which focusses on making
+All these packages are used [`remark-mark-highlight`][remark-mark-highlight], which focusses on making
 it easier to transform content by abstracting these internals away.
 
 ## Install
@@ -56,20 +52,20 @@ This package is [ESM only][esm].
 In Node.js (version 14.14+), install with [npm][]:
 
 ```sh
-npm install micromark-extension-gfm-strikethrough
+npm install micromark-extension-mark-highlight
 ```
 
 In Deno with [`esm.sh`][esmsh]:
 
 ```js
-import {gfmStrikethrough, gfmStrikethroughHtml} from 'https://esm.sh/micromark-extension-gfm-strikethrough@1'
+import {markHighlight, markhighlightHtml} from 'https://esm.sh/micromark-extension-mark-highlight@1'
 ```
 
 In browsers with [`esm.sh`][esmsh]:
 
 ```html
 <script type="module">
-  import {gfmStrikethrough, gfmStrikethroughHtml} from 'https://esm.sh/micromark-extension-gfm-strikethrough@1?bundle'
+  import {markHighlight, markhighlightHtml} from 'https://esm.sh/micromark-extension-mark-highlight@1?bundle'
 </script>
 ```
 
@@ -78,13 +74,13 @@ In browsers with [`esm.sh`][esmsh]:
 ```js
 import {micromark} from 'micromark'
 import {
-  gfmStrikethrough,
-  gfmStrikethroughHtml
-} from 'micromark-extension-gfm-strikethrough'
+  markHighlight,
+  markhighlightHtml
+} from 'micromark-extension-mark-highlight'
 
-const output = micromark('Some ~strikethrough~.', {
-  extensions: [gfmStrikethrough()],
-  htmlExtensions: [gfmStrikethroughHtml]
+const output = micromark('Some ~highlight~.', {
+  extensions: [markHighlight()],
+  htmlExtensions: [markhighlightHtml]
 })
 
 console.log(output)
@@ -93,87 +89,43 @@ console.log(output)
 Yields:
 
 ```html
-<p>Some <del>strikethrough</del></p>.
+<p>Some <mark>highlight</mark></p>.
 ```
 
 ## API
 
 This package exports the identifiers
-[`gfmStrikethrough`][api-gfm-strikethrough] and
-[`gfmStrikethroughHtml`][api-gfm-strikethrough-html].
+[`markHighlight`][api-mark-highlight] and
+[`markhighlightHtml`][api-mark-highlight].
 There is no default export.
 
 The export map supports the [`development` condition][development].
 Run `node --conditions development module.js` to get instrumented dev code.
 Without this condition, production code is loaded.
 
-### `gfmStrikethrough(options?)`
+### `markHighlight()`
 
-Create an extension for `micromark` to enable GFM strikethrough syntax.
-
-###### Parameters
-
-*   `options` ([`Options`][api-options], optional)
-    — configuration
+Create an extension for `micromark` to enable mark highlight syntax.
 
 ###### Returns
 
 Extension for `micromark` that can be passed in `extensions`, to
-enable GFM strikethrough syntax ([`Extension`][micromark-extension]).
+enable mark highlight syntax ([`Extension`][micromark-extension]).
 
-### `gfmStrikethroughHtml`
+### `markhighlightHtml`
 
 Extension for `micromark` that can be passed in `htmlExtensions`, to support
-GFM strikethrough when serializing to HTML
+mark highlight when serializing to HTML
 ([`HtmlExtension`][micromark-html-extension]).
 
-### `Options`
-
-Configuration (TypeScript type).
-
-###### Fields
-
-*   `singleTilde` (`boolean`, default: `true`)
-    — whether to support strikethrough with a single tilde.
-    Single tildes work on github.com, but are technically prohibited by the GFM
-    spec
-
-## Authoring
-
-When authoring markdown with strikethrough, it is recommended to use two
-markers.
-While `github.com` allows single tildes too, it technically prohibits it in
-their spec.
 
 ## HTML
 
-When tilde sequences match, they together relate to the `<del>` element in
+When tilde sequences match, they together relate to the `<mark>` element in
 HTML.
-See [*§ 4.7.2 The `del` element*][html-del] in the HTML spec for more info.
+See [*§ 4.5.23 The mark element*][html-mark] in the HTML spec for more info.
 
-## CSS
-
-GitHub itself does not apply interesting CSS to `del` elements.
-It currently (July 2022) does change `code` in `del`.
-
-```css
-del code {
-  text-decoration: inherit;
-}
-```
-
-For the complete actual CSS see
-[`sindresorhus/github-markdown-css`][github-markdown-css].
-
-## Syntax
-
-Strikethrough sequences form with the following BNF:
-
-```bnf
-gfm_attention_sequence ::= 1*'~'
-```
-
-Sequences are matched together to form strikethrough based on which character
+Sequences are matched together to form highlight based on which character
 they contain, how long they are, and what character occurs before and after
 each sequence.
 Otherwise they are turned into data.
@@ -181,7 +133,6 @@ Otherwise they are turned into data.
 ## Types
 
 This package is fully typed with [TypeScript][].
-It exports the additional type [`Options`][api-options].
 
 ## Compatibility
 
@@ -197,15 +148,6 @@ These extensions work with `micromark` version 3+.
 This package is safe.
 
 ## Related
-
-*   [`micromark-extension-gfm`][micromark-extension-gfm]
-    — support all of GFM
-*   [`mdast-util-gfm-strikethrough`][mdast-util-gfm-strikethrough]
-    — support all of GFM in mdast
-*   [`mdast-util-gfm`][mdast-util-gfm]
-    — support all of GFM in mdast
-*   [`remark-gfm`][remark-gfm]
-    — support all of GFM in remark
 
 ## Contribute
 
@@ -287,10 +229,9 @@ abide by its terms.
 
 [github-markdown-css]: https://github.com/sindresorhus/github-markdown-css
 
-[html-del]: https://html.spec.whatwg.org/multipage/edits.html#the-del-element
+[html-mark]: https://html.spec.whatwg.org/multipage/text-level-semantics.html#the-mark-element
 
 [api-gfm-strikethrough]: #gfmstrikethroughoptions
 
 [api-gfm-strikethrough-html]: #gfmstrikethroughhtml
 
-[api-options]: #options
