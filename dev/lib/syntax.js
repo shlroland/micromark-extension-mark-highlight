@@ -47,7 +47,6 @@ export function markHighlight() {
    */
   function resolveAllHighlight(events, context) {
     let index = -1
-
     // Walk through all events.
     while (++index < events.length) {
       // Find a token that can close.
@@ -149,7 +148,6 @@ export function markHighlight() {
     /** @type {State} */
     function start(code) {
       assert(code === codes.equalsTo, 'expected `=`')
-
       if (
         previous === codes.equalsTo &&
         events[events.length - 1][1].type !== types.characterEscape
@@ -165,7 +163,7 @@ export function markHighlight() {
     function more(code) {
       const before = classifyCharacter(previous)
 
-      if (code === codes.equalsTo) {
+      if (code === codes.equalsTo && size !== 2) {
         // If this is the third marker, exit.
         if (size > 1) return nok(code)
         effects.consume(code)
@@ -173,6 +171,7 @@ export function markHighlight() {
         return more
       }
 
+      if (size < 2) return nok(code)
       const token = effects.exit(HIGHLIGHT_SEQUENCE_TEMPORTARY)
       const after = classifyCharacter(code)
       token._open =

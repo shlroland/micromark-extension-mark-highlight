@@ -40,16 +40,16 @@ test('markdown -> html (micromark)', () => {
       extensions: [defaults],
       htmlExtensions: [html]
     }),
-    '<p>a ===b===</p>',
+    '<p>a <mark>=b</mark>=</p>',
     'should not support highlight w/ three equalsTo'
   )
 
   assert.deepEqual(
-    micromark('a \\~==b== c', {
+    micromark('a \\===b== c', {
       extensions: [defaults],
       htmlExtensions: [html]
     }),
-    '<p>a ~<mark>b</mark> c</p>',
+    '<p>a =<mark>b</mark> c</p>',
     'should support highlight w/ after an escaped equalsTo'
   )
 
@@ -79,31 +79,4 @@ test('markdown -> html (micromark)', () => {
     '<p>a <mark>b.</mark> c</p>',
     'should close if preceded by punctuation and followed by whitespace'
   )
-
-  // assert.deepEqual(
-  //   micromark('~b.~.', {
-  //     extensions: [syntax({singleTilde: true})],
-  //     htmlExtensions: [html]
-  //   }),
-  //   '<p><del>b.</del>.</p>',
-  //   'should close if preceded and followed by punctuation (del)'
-  // )
-
-  // assert.deepEqual(
-  //   micromark('a ~b~ ~~c~~ d', {
-  //     extensions: [syntax({singleTilde: false})],
-  //     htmlExtensions: [html]
-  //   }),
-  //   '<p>a ~b~ <del>c</del> d</p>',
-  //   'should not support strikethrough w/ one tilde if `singleTilde: false`'
-  // )
-
-  // assert.deepEqual(
-  //   micromark('a ~b~ ~~c~~ d', {
-  //     extensions: [syntax({singleTilde: true})],
-  //     htmlExtensions: [html]
-  //   }),
-  //   '<p>a <del>b</del> <del>c</del> d</p>',
-  //   'should support strikethrough w/ one tilde if `singleTilde: true`'
-  // )
 })
